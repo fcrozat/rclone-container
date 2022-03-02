@@ -1,0 +1,21 @@
+FROM registry.opensuse.org/opensuse/busybox AS target
+FROM registry.opensuse.org/opensuse/tumbleweed AS builder
+
+RUN mkdir /tmp/chroot
+COPY --from=target / /tmp/chroot/
+RUN echo "[main]" > /tmp/scratch-zypp.conf && echo "rpm.install.excludedocs = yes" >> /tmp/scratch-zypp.conf
+RUN export ZYPP_CONF=/tmp/scratch-zypp.conf && zypper --installroot /tmp/chroot --non-interactive --gpg-auto-import-keys in --no-recommends rclone && rm -fr /tmp/chroot/var/cache/zypp* /tmp/chroot/var/log/zypp /tmp/chroot/run/zypp*
+
+FROM target
+WORKDIR /
+COPY --from=builder /tmp/chroot/ /
+
+    #RUN echo "user_allow_other" >> /etc/fuse.conf
+
+RUN addgroup -g 1009 rclone && adduser -u 1009 -Ds /bin/sh -G rclone rclone
+
+
+ENTRYPOINT [ "rclone" ]
+
+WORKDIR /data
+ENV XDG_CONFIG_HOME=/config
