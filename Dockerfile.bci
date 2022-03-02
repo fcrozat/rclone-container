@@ -15,7 +15,7 @@ FROM registry.suse.com/bci/bci-micro
 #RUN apk --no-cache add ca-certificates fuse tzdata && \
 #  echo "user_allow_other" >> /etc/fuse.conf
 
-COPY --from=builder /rclone /usr/local/bin/
+COPY --from=builder /rclone/rclone /usr/local/bin/
 
 #RUN addgroup -g 1009 rclone && adduser -u 1009 -Ds /bin/sh -G rclone rclone
 
