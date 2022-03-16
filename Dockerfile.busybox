@@ -1,5 +1,7 @@
-FROM registry.opensuse.org/opensuse/busybox AS target
-FROM registry.opensuse.org/opensuse/tumbleweed AS builder
+#FROM registry.opensuse.org/opensuse/busybox AS target
+FROM opensuse/busybox AS target
+#FROM registry.opensuse.org/opensuse/tumbleweed AS builder
+FROM opensuse/tumbleweed AS builder
 
 RUN mkdir /tmp/chroot
 COPY --from=target / /tmp/chroot/
