@@ -1,5 +1,5 @@
-FROM registry.opensuse.org/devel/bci/images/bci/bci-micro AS target
-FROM registry.opensuse.org/opensuse/tumbleweed AS builder
+FROM registry.opensuse.org/devel/bci/images/bci/bci-micro:latest AS target
+FROM registry.opensuse.org/opensuse/tumbleweed:latest AS builder
 
 RUN mkdir /tmp/chroot
 COPY --from=target / /tmp/chroot/
