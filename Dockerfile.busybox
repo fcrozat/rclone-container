@@ -1,3 +1,4 @@
+#!BuildTag: opensuse/rclone:latest
 FROM registry.opensuse.org/opensuse/busybox:latest AS target
 #FROM opensuse/busybox AS target
 FROM registry.opensuse.org/opensuse/tumbleweed:latest AS builder
