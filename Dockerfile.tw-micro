@@ -13,8 +13,7 @@ COPY --from=builder /tmp/chroot/ /
 
 #RUN echo "user_allow_other" >> /etc/fuse.conf
 
-RUN addgroup -g 1009 rclone && adduser -u 1009 -Ds /bin/sh -G rclone rclone
-
+RUN groupadd -g 1009 rclone && useradd -u 1009 -Ds /bin/sh -G rclone rclone
 
 ENTRYPOINT [ "rclone" ]
 
