@@ -3,7 +3,14 @@
 # restic credential should be put in ~/.config/restic-password.conf
 # rclone must be configured in advanced
 #
+
+if [ ! -d $HOME/.config/rclone ]; then
+  echo "please configure rclone first"
+  exit 1
+fi
+
 LATEST_SNAPSHOT="$HOME/.snapshots/$(ls ~/.snapshots/ --sort=time -r | tail -1)/snapshot"
+[ -d $LATEST_SNAPSHOT ] || LATEST_SNAPSHOT="$HOME"
 
 cat << EOF > /tmp/restic-exclude.conf
 .cache
@@ -33,7 +40,13 @@ Musique
 Vidéos
 EOF
 
-podman container run -d --pull always --name rclone_container --hostname $(hostname) --replace -v /tmp/restic-exclude.conf:/tmp/restic-exclude.conf:ro -v /etc/localtime:/etc/localtime:ro -v $LATEST_SNAPSHOT:$HOME -v $HOME/.config/rclone:/config/rclone registry.opensuse.org/home/fcrozat/bci/containerfile_tw/opensuse/rclone:latest -vv serve restic onedrive:restic
+# disable selinux, it doesn't play well with access to whole directory and podman as rootless container
+podman container run -d --pull always --name rclone_container --hostname $(hostname) --security-opt label=disable --replace -v /tmp/restic-exclude.conf:/tmp/restic-exclude.conf:ro -v /etc/localtime:/etc/localtime:ro -v $LATEST_SNAPSHOT:$HOME -v $HOME/.config/rclone:/config/rclone registry.opensuse.org/home/fcrozat/bci/containerfile_tw/opensuse/rclone:latest -vv serve restic onedrive:restic
+if [ $? -gt 0 ]; then
+	echo "couldn't create container"
+	exit 1
+fi
+
 # waiting for rclone to be ready to serve
 (podman logs -f rclone_container 2>&1 &) | grep -q 'Serving restic REST API'
 
