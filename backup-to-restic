@@ -1,0 +1,55 @@
+#!/bin/sh
+
+# restic credential should be put in ~/.config/restic-password.conf
+# rclone must be configured in advanced
+#
+LATEST_SNAPSHOT="$HOME/.snapshots/$(ls ~/.snapshots/ --sort=time -r | tail -1)/snapshot"
+
+cat << EOF > /tmp/restic-exclude.conf
+.cache
+.config/chromium
+.config/google-chrome*
+.config/**/IndexedDB
+.config/**/Service\ Worker
+.config/**/Extensions
+.config/**/GPUCache
+.config/**/Code\ Cache
+.config/Microsoft Teams*
+.config/epiphany/gsb-threats.db
+.config/libreoffice/*/user/gallery
+.config/Code/Cache*
+.config/keycombiner/Cache
+.config/microsoft-edge*
+.local/share/flatpak/repo/objects
+.local/share/flatpak/repo/tmp
+.local/share/flatpak/appstream
+.local/share/flatpak/app
+.local/share/flatpak/runtime
+.local/share/flatpak/.removed/
+.mozilla
+Documents/perso
+Téléchargements
+Musique
+Vidéos
+EOF
+
+podman container run -d --pull always --name rclone_container --hostname $(hostname) --replace -v /tmp/restic-exclude.conf:/tmp/restic-exclude.conf:ro -v /etc/localtime:/etc/localtime:ro -v $LATEST_SNAPSHOT:$HOME -v $HOME/.config/rclone:/config/rclone registry.opensuse.org/home/fcrozat/bci/containerfile_tw/opensuse/rclone:latest -vv serve restic onedrive:restic
+# waiting for rclone to be ready to serve
+(podman logs -f rclone_container 2>&1 &) | grep -q 'Serving restic REST API'
+
+# to be done only one it
+# restic init
+
+# allow start the rclone container
+if [ $# -eq 0 ]; then
+ CMD="backup -v --exclude-caches --exclude-file /tmp/restic-exclude.conf --one-file-system /home/fcrozat"
+else
+ CMD="$@"
+fi
+
+podman exec rclone_container restic -r rest:http://localhost:8080/ --password-file $HOME/.config/restic-password.conf $CMD
+
+podman stop rclone_container
+rm -f /tmp/restic-exclude.conf
+
+exit 0
