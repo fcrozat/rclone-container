@@ -3,6 +3,8 @@
 # restic credential should be put in ~/.config/restic-password.conf
 # rclone must be configured in advanced
 #
+# to restore latest snapshot "in-place": backup-to-restic restore --target / latest
+#
 
 if [ ! -d $HOME/.config/rclone ]; then
   echo "please configure rclone first"
